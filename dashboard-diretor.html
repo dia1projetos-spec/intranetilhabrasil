@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Diretor - Colégio Ilha Brasil</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="assets/images/logo.png" alt="Colégio Ilha Brasil" class="sidebar-logo">
+            <h2>Colégio Ilha Brasil</h2>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <span class="icon">📊</span>
+                Visão Geral
+            </a>
+            <a href="#" class="nav-item" data-section="diretores">
+                <span class="icon">👔</span>
+                Diretores
+            </a>
+            <a href="#" class="nav-item" data-section="professores">
+                <span class="icon">👨‍🏫</span>
+                Professores
+            </a>
+            <a href="#" class="nav-item" data-section="alunos">
+                <span class="icon">👨‍🎓</span>
+                Alunos
+            </a>
+            <a href="#" class="nav-item" data-section="turmas">
+                <span class="icon">🏫</span>
+                Turmas
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <span class="user-name" id="userName">Diretor(a)</span>
+                <span class="user-role">Administrador</span>
+            </div>
+            <button class="btn-logout" id="btnLogout">Sair</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <h1 id="pageTitle">Visão Geral</h1>
+            </div>
+            <div class="header-right">
+                <span class="date" id="currentDate"></span>
+            </div>
+        </header>
+
+        <!-- Content Sections -->
+        <div class="content-wrapper">
+            
+            <!-- Visão Geral Section -->
+            <section id="overview" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #6f42c1;">👔</div>
+                        <div class="stat-info">
+                            <h3 id="totalDiretores">0</h3>
+                            <p>Diretores</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #28a745;">👨‍🏫</div>
+                        <div class="stat-info">
+                            <h3 id="totalProfessores">0</h3>
+                            <p>Professores</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #007bff;">👨‍🎓</div>
+                        <div class="stat-info">
+                            <h3 id="totalAlunos">0</h3>
+                            <p>Alunos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #ffc107;">🏫</div>
+                        <div class="stat-info">
+                            <h3 id="totalTurmas">0</h3>
+                            <p>Turmas</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activities">
+                    <h2>Atividades Recentes</h2>
+                    <div class="activity-list" id="activityList">
+                        <p class="no-data">Nenhuma atividade recente</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Diretores Section -->
+            <section id="diretores" class="content-section">
+                <div class="section-header">
+                    <h2>Gerenciar Diretores</h2>
+                    <button class="btn-primary" id="btnAddDiretor">
+                        <span class="icon">➕</span> Adicionar Diretor
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                                <th>Data de Cadastro</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diretoresTableBody">
+                            <tr>
+                                <td colspan="5" class="no-data">Nenhum diretor cadastrado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Professores Section -->
+            <section id="professores" class="content-section">
+                <div class="section-header">
+                    <h2>Gerenciar Professores</h2>
+                    <button class="btn-primary" id="btnAddProfessor">
+                        <span class="icon">➕</span> Adicionar Professor
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                                <th>Data de Cadastro</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="professoresTableBody">
+                            <tr>
+                                <td colspan="5" class="no-data">Nenhum professor cadastrado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Alunos Section -->
+            <section id="alunos" class="content-section">
+                <div class="section-header">
+                    <h2>Gerenciar Alunos</h2>
+                    <button class="btn-primary" id="btnAddAluno">
+                        <span class="icon">➕</span> Adicionar Aluno
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Turma</th>
+                                <th>Responsável</th>
+                                <th>Data de Cadastro</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alunosTableBody">
+                            <tr>
+                                <td colspan="6" class="no-data">Nenhum aluno cadastrado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Turmas Section -->
+            <section id="turmas" class="content-section">
+                <div class="section-header">
+                    <h2>Gerenciar Turmas</h2>
+                    <button class="btn-primary" id="btnAddTurma">
+                        <span class="icon">➕</span> Criar Turma
+                    </button>
+                </div>
+
+                <div class="turmas-grid" id="turmasGrid">
+                    <p class="no-data">Nenhuma turma cadastrada</p>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Modal Adicionar Diretor -->
+    <div id="modalDiretor" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adicionar Diretor</h2>
+                <button class="modal-close" data-modal="modalDiretor">&times;</button>
+            </div>
+            <form id="formDiretor" class="modal-form">
+                <div class="form-group">
+                    <label for="diretorNome">Nome Completo *</label>
+                    <input type="text" id="diretorNome" required placeholder="Ex: Maria Silva">
+                </div>
+                
+                <div class="form-group">
+                    <label for="diretorEmail">E-mail *</label>
+                    <input type="email" id="diretorEmail" required placeholder="diretor@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="diretorSenha">Senha *</label>
+                    <input type="password" id="diretorSenha" required placeholder="Mínimo 6 caracteres">
+                </div>
+                
+                <div class="form-group">
+                    <label for="diretorTelefone">Telefone</label>
+                    <input type="tel" id="diretorTelefone" placeholder="(00) 00000-0000">
+                </div>
+                
+                <div id="diretorError" class="error-message"></div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-modal="modalDiretor">Cancelar</button>
+                    <button type="submit" class="btn-primary">Cadastrar Diretor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Professor -->
+    <div id="modalProfessor" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adicionar Professor</h2>
+                <button class="modal-close" data-modal="modalProfessor">&times;</button>
+            </div>
+            <form id="formProfessor" class="modal-form">
+                <div class="form-group">
+                    <label for="professorNome">Nome Completo *</label>
+                    <input type="text" id="professorNome" required placeholder="Ex: João Silva">
+                </div>
+                
+                <div class="form-group">
+                    <label for="professorEmail">E-mail *</label>
+                    <input type="email" id="professorEmail" required placeholder="professor@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="professorSenha">Senha *</label>
+                    <input type="password" id="professorSenha" required placeholder="Mínimo 6 caracteres">
+                </div>
+                
+                <div class="form-group">
+                    <label for="professorTelefone">Telefone</label>
+                    <input type="tel" id="professorTelefone" placeholder="(00) 00000-0000">
+                </div>
+                
+                <div id="professorError" class="error-message"></div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-modal="modalProfessor">Cancelar</button>
+                    <button type="submit" class="btn-primary">Cadastrar Professor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Aluno -->
+    <div id="modalAluno" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Adicionar Aluno</h2>
+                <button class="modal-close" data-modal="modalAluno">&times;</button>
+            </div>
+            <form id="formAluno" class="modal-form">
+                <div class="form-group">
+                    <label for="alunoNome">Nome Completo *</label>
+                    <input type="text" id="alunoNome" required placeholder="Ex: Maria Santos">
+                </div>
+                
+                <div class="form-group">
+                    <label for="alunoTurma">Turma *</label>
+                    <select id="alunoTurma" required>
+                        <option value="">Selecione a turma...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="alunoResponsavel">Nome do Responsável *</label>
+                    <input type="text" id="alunoResponsavel" required placeholder="Ex: José Santos">
+                </div>
+                
+                <div class="form-group">
+                    <label for="alunoEmailResponsavel">E-mail do Responsável *</label>
+                    <input type="email" id="alunoEmailResponsavel" required placeholder="responsavel@email.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="alunoSenhaResponsavel">Senha de Acesso *</label>
+                    <input type="password" id="alunoSenhaResponsavel" required placeholder="Senha para o responsável">
+                </div>
+                
+                <div class="form-group">
+                    <label for="alunoDataNascimento">Data de Nascimento</label>
+                    <input type="date" id="alunoDataNascimento">
+                </div>
+                
+                <div id="alunoError" class="error-message"></div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-modal="modalAluno">Cancelar</button>
+                    <button type="submit" class="btn-primary">Cadastrar Aluno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Turma -->
+    <div id="modalTurma" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Criar Turma</h2>
+                <button class="modal-close" data-modal="modalTurma">&times;</button>
+            </div>
+            <form id="formTurma" class="modal-form">
+                <div class="form-group">
+                    <label for="turmaNome">Nome da Turma *</label>
+                    <input type="text" id="turmaNome" required placeholder="Ex: 1º Ano A">
+                </div>
+                
+                <div class="form-group">
+                    <label for="turmaAno">Ano Letivo *</label>
+                    <input type="number" id="turmaAno" required value="2026" min="2020" max="2030">
+                </div>
+                
+                <div class="form-group">
+                    <label for="turmaPeriodo">Período *</label>
+                    <select id="turmaPeriodo" required>
+                        <option value="">Selecione...</option>
+                        <option value="Matutino">Matutino</option>
+                        <option value="Vespertino">Vespertino</option>
+                        <option value="Noturno">Noturno</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="turmaCapacidade">Capacidade de Alunos</label>
+                    <input type="number" id="turmaCapacidade" placeholder="Ex: 30" min="1">
+                </div>
+                
+                <div id="turmaError" class="error-message"></div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-modal="modalTurma">Cancelar</button>
+                    <button type="submit" class="btn-primary">Criar Turma</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/dashboard-diretor.js"></script>
+</body>
+</html>
