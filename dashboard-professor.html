@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Professor - Colégio Ilha Brasil</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="assets/images/logo.png" alt="Colégio Ilha Brasil" class="sidebar-logo">
+            <h2>Colégio Ilha Brasil</h2>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <span class="icon">📊</span>
+                Vis ão Geral
+            </a>
+            <a href="#" class="nav-item" data-section="feed">
+                <span class="icon">📱</span>
+                Feed
+            </a>
+            <a href="#" class="nav-item" data-section="alunos">
+                <span class="icon">👨‍🎓</span>
+                Meus Alunos
+            </a>
+            <a href="#" class="nav-item" data-section="turmas">
+                <span class="icon">🏫</span>
+                Minhas Turmas
+            </a>
+            <a href="#" class="nav-item" data-section="mensagens">
+                <span class="icon">💬</span>
+                Mensagens
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <span class="user-name" id="userName">Professor(a)</span>
+                <span class="user-role">Professor</span>
+            </div>
+            <button class="btn-logout" id="btnLogout">Sair</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <h1 id="pageTitle">Visão Geral</h1>
+            </div>
+            <div class="header-right">
+                <span class="date" id="currentDate"></span>
+            </div>
+        </header>
+
+        <!-- Content Sections -->
+        <div class="content-wrapper">
+            
+            <!-- Visão Geral Section -->
+            <section id="overview" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #007bff;">👨‍🎓</div>
+                        <div class="stat-info">
+                            <h3 id="totalAlunos">0</h3>
+                            <p>Alunos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #ffc107;">🏫</div>
+                        <div class="stat-info">
+                            <h3 id="totalTurmas">0</h3>
+                            <p>Turmas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #28a745;">📝</div>
+                        <div class="stat-info">
+                            <h3 id="totalAulas">0</h3>
+                            <p>Aulas Hoje</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dc3545;">💬</div>
+                        <div class="stat-info">
+                            <h3 id="totalMensagens">0</h3>
+                            <p>Mensagens</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activities">
+                    <h2>Atividades Recentes</h2>
+                    <div class="activity-list" id="activityList">
+                        <p class="no-data">Nenhuma atividade recente</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Feed Section -->
+            <section id="feed" class="content-section">
+                <div class="section-header">
+                    <h2>Feed da Escola</h2>
+                    <button class="btn-primary" id="btnAddPost">
+                        <span class="icon">➕</span> Nova Publicação
+                    </button>
+                </div>
+
+                <div id="feedContainer" class="feed-container">
+                    <p class="no-data">Nenhuma publicação ainda</p>
+                </div>
+            </section>
+
+            <!-- Alunos Section -->
+            <section id="alunos" class="content-section">
+                <div class="section-header">
+                    <h2>Meus Alunos</h2>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Turma</th>
+                                <th>Responsável</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alunosTableBody">
+                            <tr>
+                                <td colspan="5" class="no-data">Nenhum aluno cadastrado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Turmas Section -->
+            <section id="turmas" class="content-section">
+                <div class="section-header">
+                    <h2>Minhas Turmas</h2>
+                </div>
+
+                <div class="turmas-grid" id="turmasGrid">
+                    <p class="no-data">Nenhuma turma cadastrada</p>
+                </div>
+            </section>
+
+            <!-- Mensagens Section -->
+            <section id="mensagens" class="content-section">
+                <div class="section-header">
+                    <h2>Mensagens</h2>
+                </div>
+
+                <div class="mensagens-container">
+                    <div class="conversas-list">
+                        <h3>Conversas</h3>
+                        <div id="conversasList">
+                            <p class="no-data">Nenhuma conversa</p>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-area">
+                        <div id="chatHeader" class="chat-header">
+                            <p>Selecione uma conversa</p>
+                        </div>
+                        <div id="chatMessages" class="chat-messages">
+                            <p class="no-data">Selecione uma conversa para começar</p>
+                        </div>
+                        <div id="chatInput" class="chat-input" style="display: none;">
+                            <input type="text" placeholder="Digite sua mensagem..." id="messageInput">
+                            <button class="btn-primary" id="btnSendMessage">Enviar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/dashboard-professor.js"></script>
+</body>
+</html>

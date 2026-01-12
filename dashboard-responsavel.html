@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Responsável - Colégio Ilha Brasil</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="assets/images/logo.png" alt="Colégio Ilha Brasil" class="sidebar-logo">
+            <h2>Colégio Ilha Brasil</h2>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <span class="icon">📊</span>
+                Visão Geral
+            </a>
+            <a href="#" class="nav-item" data-section="aluno">
+                <span class="icon">👨‍🎓</span>
+                Meu Filho(a)
+            </a>
+            <a href="#" class="nav-item" data-section="notas">
+                <span class="icon">📝</span>
+                Boletim
+            </a>
+            <a href="#" class="nav-item" data-section="frequencia">
+                <span class="icon">📅</span>
+                Frequência
+            </a>
+            <a href="#" class="nav-item" data-section="mensagens">
+                <span class="icon">💬</span>
+                Mensagens
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <span class="user-name" id="userName">Responsável</span>
+                <span class="user-role">Responsável</span>
+            </div>
+            <button class="btn-logout" id="btnLogout">Sair</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <h1 id="pageTitle">Visão Geral</h1>
+            </div>
+            <div class="header-right">
+                <span class="date" id="currentDate"></span>
+            </div>
+        </header>
+
+        <!-- Content Sections -->
+        <div class="content-wrapper">
+            
+            <!-- Visão Geral Section -->
+            <section id="overview" class="content-section active">
+                <div class="student-card">
+                    <h2>Informações do Aluno</h2>
+                    <div id="studentInfo">
+                        <p class="no-data">Carregando informações...</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #28a745;">✅</div>
+                        <div class="stat-info">
+                            <h3 id="frequencia">0%</h3>
+                            <p>Frequência</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #007bff;">📊</div>
+                        <div class="stat-info">
+                            <h3 id="mediaGeral">0.0</h3>
+                            <p>Média Geral</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #ffc107;">📚</div>
+                        <div class="stat-info">
+                            <h3 id="totalDisciplinas">0</h3>
+                            <p>Disciplinas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dc3545;">💬</div>
+                        <div class="stat-info">
+                            <h3 id="totalMensagens">0</h3>
+                            <p>Mensagens</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activities">
+                    <h2>Últimas Atualizações</h2>
+                    <div class="activity-list" id="activityList">
+                        <p class="no-data">Nenhuma atualização recente</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aluno Section -->
+            <section id="aluno" class="content-section">
+                <div class="section-header">
+                    <h2>Informações do Aluno</h2>
+                </div>
+
+                <div class="student-details" id="studentDetails">
+                    <p class="no-data">Carregando...</p>
+                </div>
+            </section>
+
+            <!-- Notas Section -->
+            <section id="notas" class="content-section">
+                <div class="section-header">
+                    <h2>Boletim Escolar</h2>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Disciplina</th>
+                                <th>1º Bimestre</th>
+                                <th>2º Bimestre</th>
+                                <th>3º Bimestre</th>
+                                <th>4º Bimestre</th>
+                                <th>Média Final</th>
+                                <th>Situação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notasTableBody">
+                            <tr>
+                                <td colspan="7" class="no-data">Aguardando lançamento de notas</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Frequência Section -->
+            <section id="frequencia" class="content-section">
+                <div class="section-header">
+                    <h2>Frequência Escolar</h2>
+                </div>
+
+                <div class="frequencia-info">
+                    <div class="frequencia-card">
+                        <h3>Presença Total</h3>
+                        <p class="frequencia-percent" id="presencaTotal">0%</p>
+                        <p class="frequencia-detail"><span id="diasPresentes">0</span> dias presentes de <span id="totalDias">0</span> dias letivos</p>
+                    </div>
+                    
+                    <div class="frequencia-card">
+                        <h3>Faltas</h3>
+                        <p class="frequencia-number" id="totalFaltas">0</p>
+                        <p class="frequencia-detail">faltas registradas</p>
+                    </div>
+                </div>
+
+                <div class="frequencia-mensal">
+                    <h3>Frequência Mensal</h3>
+                    <div id="frequenciaMensal">
+                        <p class="no-data">Nenhum registro de frequência</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mensagens Section -->
+            <section id="mensagens" class="content-section">
+                <div class="section-header">
+                    <h2>Mensagens</h2>
+                </div>
+
+                <div class="mensagens-container">
+                    <div class="conversas-list">
+                        <h3>Conversas</h3>
+                        <div id="conversasList">
+                            <p class="no-data">Nenhuma conversa</p>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-area">
+                        <div id="chatHeader" class="chat-header">
+                            <p>Selecione uma conversa</p>
+                        </div>
+                        <div id="chatMessages" class="chat-messages">
+                            <p class="no-data">Selecione uma conversa para começar</p>
+                        </div>
+                        <div id="chatInput" class="chat-input" style="display: none;">
+                            <input type="text" placeholder="Digite sua mensagem..." id="messageInput">
+                            <button class="btn-primary" id="btnSendMessage">Enviar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/dashboard-responsavel.js"></script>
+</body>
+</html>
