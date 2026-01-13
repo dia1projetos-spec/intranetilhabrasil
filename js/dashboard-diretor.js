@@ -11,6 +11,7 @@ import {
     doc,
     setDoc,
     deleteDoc,
+    updateDoc,
     query,
     orderBy,
     serverTimestamp,
@@ -638,15 +639,18 @@ async function updateStats() {
 }
 
 // Funções globais (chamadas pelos botões inline)
-window.editarDiretor = function(id) {
-    alert('Funcionalidade de edição em desenvolvimento');
-};
-
 window.deletarDiretor = async function(id) {
     if (!confirm('Tem certeza que deseja excluir este diretor?')) return;
     
     try {
+        // Deletar do Firestore
         await deleteDoc(doc(db, 'diretores', id));
+        
+        // NOTA: Não podemos deletar usuário do Authentication aqui porque
+        // apenas o próprio usuário ou Admin SDK pode fazer isso.
+        // O usuário continuará no Authentication mas sem acesso ao sistema
+        // pois não terá documento no Firestore.
+        
         alert('Diretor excluído com sucesso!');
         loadDiretores();
         updateStats();
@@ -654,10 +658,6 @@ window.deletarDiretor = async function(id) {
         console.error('Erro ao excluir:', error);
         alert('Erro ao excluir diretor.');
     }
-};
-
-window.editarProfessor = function(id) {
-    alert('Funcionalidade de edição em desenvolvimento');
 };
 
 window.deletarProfessor = async function(id) {
@@ -674,10 +674,6 @@ window.deletarProfessor = async function(id) {
     }
 };
 
-window.editarAluno = function(id) {
-    alert('Funcionalidade de edição em desenvolvimento');
-};
-
 window.deletarAluno = async function(id) {
     if (!confirm('Tem certeza que deseja excluir este aluno?')) return;
     
@@ -690,10 +686,6 @@ window.deletarAluno = async function(id) {
         console.error('Erro ao excluir:', error);
         alert('Erro ao excluir aluno.');
     }
-};
-
-window.editarTurma = function(id) {
-    alert('Funcionalidade de edição em desenvolvimento');
 };
 
 window.deletarTurma = async function(id) {
@@ -709,3 +701,132 @@ window.deletarTurma = async function(id) {
         alert('Erro ao excluir turma.');
     }
 };
+    }
+};
+
+// ============================================
+// FUNÇÕES DE EDIÇÃO
+// ============================================
+
+// Editar Diretor
+window.editarDiretor = async function(id) {
+    try {
+        const diretorDoc = await getDoc(doc(db, 'diretores', id));
+        if (!diretorDoc.exists()) {
+            alert('Diretor não encontrado');
+            return;
+        }
+        
+        const diretor = diretorDoc.data();
+        
+        const nome = prompt('Nome:', diretor.nome);
+        if (!nome) return;
+        
+        const telefone = prompt('Telefone:', diretor.telefone || '');
+        
+        await updateDoc(doc(db, 'diretores', id), {
+            nome: nome,
+            telefone: telefone || ''
+        });
+        
+        alert('Diretor atualizado com sucesso!');
+        loadDiretores();
+        
+    } catch (error) {
+        console.error('Erro ao editar:', error);
+        alert('Erro ao editar diretor.');
+    }
+};
+
+// Editar Professor
+window.editarProfessor = async function(id) {
+    try {
+        const professorDoc = await getDoc(doc(db, 'professores', id));
+        if (!professorDoc.exists()) {
+            alert('Professor não encontrado');
+            return;
+        }
+        
+        const professor = professorDoc.data();
+        
+        const nome = prompt('Nome:', professor.nome);
+        if (!nome) return;
+        
+        const telefone = prompt('Telefone:', professor.telefone || '');
+        
+        await updateDoc(doc(db, 'professores', id), {
+            nome: nome,
+            telefone: telefone || ''
+        });
+        
+        alert('Professor atualizado com sucesso!');
+        loadProfessores();
+        
+    } catch (error) {
+        console.error('Erro ao editar:', error);
+        alert('Erro ao editar professor.');
+    }
+};
+
+// Editar Aluno
+window.editarAluno = async function(id) {
+    try {
+        const alunoDoc = await getDoc(doc(db, 'alunos', id));
+        if (!alunoDoc.exists()) {
+            alert('Aluno não encontrado');
+            return;
+        }
+        
+        const aluno = alunoDoc.data();
+        
+        const nome = prompt('Nome do Aluno:', aluno.nome);
+        if (!nome) return;
+        
+        const dataNascimento = prompt('Data de Nascimento (YYYY-MM-DD):', aluno.dataNascimento || '');
+        
+        await updateDoc(doc(db, 'alunos', id), {
+            nome: nome,
+            dataNascimento: dataNascimento || ''
+        });
+        
+        alert('Aluno atualizado com sucesso!');
+        loadAlunos();
+        
+    } catch (error) {
+        console.error('Erro ao editar:', error);
+        alert('Erro ao editar aluno.');
+    }
+};
+
+// Editar Turma
+window.editarTurma = async function(id) {
+    try {
+        const turmaDoc = await getDoc(doc(db, 'turmas', id));
+        if (!turmaDoc.exists()) {
+            alert('Turma não encontrada');
+            return;
+        }
+        
+        const turma = turmaDoc.data();
+        
+        const nome = prompt('Nome da Turma:', turma.nome);
+        if (!nome) return;
+        
+        const periodo = prompt('Período:', turma.periodo || '');
+        const capacidade = prompt('Capacidade:', turma.capacidade || '30');
+        
+        await updateDoc(doc(db, 'turmas', id), {
+            nome: nome,
+            periodo: periodo || '',
+            capacidade: parseInt(capacidade) || 30
+        });
+        
+        alert('Turma atualizada com sucesso!');
+        loadTurmas();
+        
+    } catch (error) {
+        console.error('Erro ao editar:', error);
+        alert('Erro ao editar turma.');
+    }
+};
+
