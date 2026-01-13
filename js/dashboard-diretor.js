@@ -1,3 +1,4 @@
+// VERSÃO: 2026-01-13 23:45 - ARQUIVO CORRIGIDO
 import { auth, db, firebaseConfig } from './firebase-config.js';
 import { 
     signOut,
@@ -699,8 +700,6 @@ window.deletarTurma = async function(id) {
     } catch (error) {
         console.error('Erro ao excluir:', error);
         alert('Erro ao excluir turma.');
-    }
-};
     }
 };
 
