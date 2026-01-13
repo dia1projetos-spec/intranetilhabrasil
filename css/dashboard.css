@@ -817,3 +817,95 @@ body {
     color: var(--primary-green);
     margin-bottom: 16px;
 }
+
+/* Comentários */
+.comentarios-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.comentarios-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.comentario-item {
+    padding: 8px;
+    background: var(--bg-light);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.comentario-form {
+    display: flex;
+    gap: 8px;
+}
+
+.comentario-form input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.comentario-form input:focus {
+    outline: none;
+    border-color: var(--primary-green);
+}
+
+.comentario-form button {
+    padding: 8px 16px;
+}
+
+/* Lista de usuários para nova conversa */
+.usuarios-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.usuario-item {
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.usuario-item:hover {
+    background: var(--bg-light);
+}
+
+/* Textarea */
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 3px rgba(0, 117, 58, 0.1);
+}
+
+/* File input customizado */
+input[type="file"] {
+    padding: 8px;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+input[type="file"]:hover {
+    border-color: var(--primary-green);
+    background: var(--light-green);
+}
+

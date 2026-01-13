@@ -1,4 +1,4 @@
-import { auth, db } from './firebase-config.js';
+import { auth, db, firebaseConfig } from './firebase-config.js';
 import { 
     signOut,
     onAuthStateChanged,
@@ -14,8 +14,11 @@ import {
     query,
     orderBy,
     serverTimestamp,
-    getDoc
+    getDoc,
+    onSnapshot
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Elementos do DOM
 const userName = document.getElementById('userName');
@@ -165,11 +168,15 @@ formDiretor.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Cadastrando...';
     
     try {
-        // Criar conta no Firebase Auth para o novo diretor
-        const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+        // Criar uma segunda instância do Firebase para não deslogar o usuário atual
+        const secondaryApp = initializeApp(firebaseConfig, 'Secondary');
+        const secondaryAuth = getAuth(secondaryApp);
+        
+        // Criar conta no Firebase Auth usando a instância secundária
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, senha);
         const uid = userCredential.user.uid;
         
-        // Salvar dados no Firestore
+        // Salvar dados no Firestore (usando a instância principal)
         await setDoc(doc(db, 'diretores', uid), {
             nome: nome,
             email: email,
@@ -185,16 +192,19 @@ formDiretor.addEventListener('submit', async (e) => {
             timestamp: serverTimestamp()
         });
         
-        // Deslogar o novo diretor imediatamente
-        await signOut(auth);
+        // Deletar a instância secundária
+        await secondaryApp.delete();
         
-        // Aguardar um pouco
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        alert('Diretor cadastrado com sucesso!');
+        formDiretor.reset();
+        closeModal(modalDiretor);
         
-        alert('Diretor cadastrado com sucesso! Faça login novamente para continuar.');
+        // Recarregar listas (SEM reload da página)
+        await loadDiretores();
+        await updateStats();
         
-        // Recarregar para fazer login novamente
-        window.location.reload();
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Cadastrar Diretor';
         
     } catch (error) {
         console.error('Erro ao cadastrar diretor:', error);
@@ -231,8 +241,12 @@ formProfessor.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Cadastrando...';
     
     try {
+        // Criar uma segunda instância do Firebase
+        const secondaryApp = initializeApp(firebaseConfig, 'SecondaryProf');
+        const secondaryAuth = getAuth(secondaryApp);
+        
         // Criar conta no Firebase Auth
-        const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, senha);
         const uid = userCredential.user.uid;
         
         // Salvar dados no Firestore
@@ -251,12 +265,19 @@ formProfessor.addEventListener('submit', async (e) => {
             timestamp: serverTimestamp()
         });
         
-        // Deslogar o novo professor
-        await signOut(auth);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Deletar instância secundária
+        await secondaryApp.delete();
         
-        alert('Professor cadastrado com sucesso! Faça login novamente para continuar.');
-        window.location.reload();
+        alert('Professor cadastrado com sucesso!');
+        formProfessor.reset();
+        closeModal(modalProfessor);
+        
+        // Recarregar listas
+        await loadProfessores();
+        await updateStats();
+        
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Cadastrar Professor';
         
     } catch (error) {
         console.error('Erro ao cadastrar professor:', error);
@@ -295,8 +316,12 @@ formAluno.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Cadastrando...';
     
     try {
+        // Criar uma segunda instância do Firebase
+        const secondaryApp = initializeApp(firebaseConfig, 'SecondaryResp');
+        const secondaryAuth = getAuth(secondaryApp);
+        
         // Criar conta do responsável no Firebase Auth
-        const userCredential = await createUserWithEmailAndPassword(auth, emailResponsavel, senhaResponsavel);
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, emailResponsavel, senhaResponsavel);
         const uidResponsavel = userCredential.user.uid;
         
         // Salvar dados do responsável no Firestore
@@ -331,12 +356,19 @@ formAluno.addEventListener('submit', async (e) => {
             timestamp: serverTimestamp()
         });
         
-        // Deslogar o responsável
-        await signOut(auth);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Deletar instância secundária
+        await secondaryApp.delete();
         
-        alert('Aluno cadastrado com sucesso! Faça login novamente para continuar.');
-        window.location.reload();
+        alert('Aluno cadastrado com sucesso!');
+        formAluno.reset();
+        closeModal(modalAluno);
+        
+        // Recarregar listas
+        await loadAlunos();
+        await updateStats();
+        
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Cadastrar Aluno';
         
     } catch (error) {
         console.error('Erro ao cadastrar aluno:', error);
@@ -674,3 +706,442 @@ window.deletarTurma = async function(id) {
         alert('Erro ao excluir turma.');
     }
 };
+
+// ============================================
+// SISTEMA DE FEED E MENSAGENS
+// ============================================
+
+import { criarPost, carregarFeed, toggleCurtida, comentarPost, escutarFeed } from './feed.js';
+import { 
+    iniciarConversa, 
+    enviarMensagem, 
+    carregarConversas, 
+    carregarMensagens,
+    escutarMensagens,
+    escutarConversas,
+    listarUsuarios 
+} from './mensagens.js';
+
+// Modais de Feed e Mensagens
+const modalPost = document.getElementById('modalPost');
+const modalNovaConversa = document.getElementById('modalNovaConversa');
+const btnAddPost = document.getElementById('btnAddPost');
+const btnNovaConversa = document.getElementById('btnNovaConversa');
+const formPost = document.getElementById('formPost');
+
+// Variáveis globais
+let conversaAtual = null;
+let unsubscribeMensagens = null;
+
+// Abrir modal de post
+if (btnAddPost) {
+    btnAddPost.addEventListener('click', () => openModal(modalPost));
+}
+
+// Abrir modal de nova conversa
+if (btnNovaConversa) {
+    btnNovaConversa.addEventListener('click', async () => {
+        openModal(modalNovaConversa);
+        await carregarUsuariosParaConversa();
+    });
+}
+
+// Preview de imagem
+const postImagemInput = document.getElementById('postImagem');
+if (postImagemInput) {
+    postImagemInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('imagemPreview').style.display = 'block';
+                document.getElementById('imagemPreviewImg').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+// Criar post
+if (formPost) {
+    formPost.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const texto = document.getElementById('postTexto').value.trim();
+        const imagemFile = document.getElementById('postImagem').files[0];
+        const errorDiv = document.getElementById('postError');
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        
+        if (!texto) {
+            errorDiv.textContent = 'Digite algo para publicar!';
+            errorDiv.classList.add('show');
+            return;
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Publicando...';
+        errorDiv.classList.remove('show');
+        
+        try {
+            await criarPost(texto, imagemFile);
+            
+            alert('Publicação criada com sucesso!');
+            formPost.reset();
+            document.getElementById('imagemPreview').style.display = 'none';
+            closeModal(modalPost);
+            
+            // Recarregar feed
+            await loadFeed();
+            
+        } catch (error) {
+            console.error('Erro ao criar post:', error);
+            errorDiv.textContent = 'Erro ao criar publicação. Tente novamente.';
+            errorDiv.classList.add('show');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Publicar';
+        }
+    });
+}
+
+// Carregar Feed
+async function loadFeed() {
+    try {
+        const feedContainer = document.getElementById('feedContainer');
+        if (!feedContainer) return;
+        
+        feedContainer.innerHTML = '<p class="no-data">Carregando feed...</p>';
+        
+        const posts = await carregarFeed();
+        
+        if (posts.length === 0) {
+            feedContainer.innerHTML = '<p class="no-data">Nenhuma publicação ainda. Seja o primeiro a postar!</p>';
+            return;
+        }
+        
+        feedContainer.innerHTML = '';
+        
+        posts.forEach(post => {
+            feedContainer.appendChild(criarPostCard(post));
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar feed:', error);
+        const feedContainer = document.getElementById('feedContainer');
+        if (feedContainer) {
+            feedContainer.innerHTML = '<p class="no-data">Erro ao carregar feed.</p>';
+        }
+    }
+}
+
+// Criar card de post
+function criarPostCard(post) {
+    const card = document.createElement('div');
+    card.className = 'post-card';
+    
+    const iniciaisAutor = post.autorNome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const jacu rtiu = post.curtidas && post.curtidas.includes(auth.currentUser?.uid);
+    const totalCurtidas = post.curtidas ? post.curtidas.length : 0;
+    const totalComentarios = post.comentarios ? post.comentarios.length : 0;
+    
+    let dataPost = 'Agora';
+    if (post.dataCriacao) {
+        const data = post.dataCriacao.toDate ? post.dataCriacao.toDate() : new Date(post.dataCriacao);
+        dataPost = formatarData(data);
+    }
+    
+    card.innerHTML = `
+        <div class="post-header">
+            <div class="post-avatar">${iniciaisAutor}</div>
+            <div class="post-info">
+                <h4>${post.autorNome}</h4>
+                <span>${dataPost}</span>
+            </div>
+        </div>
+        <div class="post-content">
+            ${post.texto}
+        </div>
+        ${post.imagemUrl ? `<img src="${post.imagemUrl}" class="post-image" alt="Imagem do post">` : ''}
+        <div class="post-actions">
+            <button class="post-action-btn ${jaCurtiu ? 'liked' : ''}" onclick="handleCurtir('${post.id}')">
+                ❤️ <span id="curtidas-${post.id}">${totalCurtidas}</span>
+            </button>
+            <button class="post-action-btn" onclick="toggleComentarios('${post.id}')">
+                💬 ${totalComentarios}
+            </button>
+        </div>
+        <div id="comentarios-${post.id}" class="comentarios-section" style="display: none;">
+            <div class="comentarios-list" id="comentarios-list-${post.id}">
+                ${renderizarComentarios(post.comentarios || [])}
+            </div>
+            <div class="comentario-form">
+                <input type="text" placeholder="Escreva um comentário..." id="input-comentario-${post.id}">
+                <button class="btn-primary" onclick="handleComentar('${post.id}')">Enviar</button>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+// Renderizar comentários
+function renderizarComentarios(comentarios) {
+    if (!comentarios || comentarios.length === 0) {
+        return '<p class="no-data">Nenhum comentário ainda</p>';
+    }
+    
+    return comentarios.map(c => `
+        <div class="comentario-item">
+            <strong>${c.autorNome}:</strong> ${c.texto}
+        </div>
+    `).join('');
+}
+
+// Formatar data
+function formatarData(data) {
+    const agora = new Date();
+    const diff = agora - data;
+    const minutos = Math.floor(diff / 60000);
+    const horas = Math.floor(minutos / 60);
+    const dias = Math.floor(horas / 24);
+    
+    if (minutos < 1) return 'Agora';
+    if (minutos < 60) return `${minutos}m`;
+    if (horas < 24) return `${horas}h`;
+    if (dias < 7) return `${dias}d`;
+    return data.toLocaleDateString('pt-BR');
+}
+
+// Handle curtir
+window.handleCurtir = async function(postId) {
+    try {
+        const result = await toggleCurtida(postId);
+        await loadFeed(); // Recarregar feed para atualizar curtidas
+    } catch (error) {
+        console.error('Erro ao curtir:', error);
+        alert('Erro ao curtir publicação.');
+    }
+};
+
+// Toggle comentários
+window.toggleComentarios = function(postId) {
+    const comentariosDiv = document.getElementById(`comentarios-${postId}`);
+    if (comentariosDiv.style.display === 'none') {
+        comentariosDiv.style.display = 'block';
+    } else {
+        comentariosDiv.style.display = 'none';
+    }
+};
+
+// Handle comentar
+window.handleComentar = async function(postId) {
+    const inputComentario = document.getElementById(`input-comentario-${postId}`);
+    const texto = inputComentario.value.trim();
+    
+    if (!texto) return;
+    
+    try {
+        await comentarPost(postId, texto);
+        inputComentario.value = '';
+        await loadFeed(); // Recarregar feed
+    } catch (error) {
+        console.error('Erro ao comentar:', error);
+        alert('Erro ao enviar comentário.');
+    }
+};
+
+// ============================================
+// SISTEMA DE MENSAGENS
+// ============================================
+
+// Carregar usuários para nova conversa
+async function carregarUsuariosParaConversa() {
+    try {
+        const usuariosList = document.getElementById('usuariosList');
+        usuariosList.innerHTML = '<p class="no-data">Carregando...</p>';
+        
+        const usuarios = await listarUsuarios();
+        const currentUserId = auth.currentUser.uid;
+        
+        // Filtrar usuário atual
+        const usuariosFiltrados = usuarios.filter(u => u.id !== currentUserId);
+        
+        if (usuariosFiltrados.length === 0) {
+            usuariosList.innerHTML = '<p class="no-data">Nenhum usuário disponível</p>';
+            return;
+        }
+        
+        usuariosList.innerHTML = '';
+        
+        usuariosFiltrados.forEach(usuario => {
+            const item = document.createElement('div');
+            item.className = 'usuario-item';
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer;">
+                    <div>
+                        <strong>${usuario.nome}</strong>
+                        <p style="margin: 0; font-size: 12px; color: var(--text-light);">${usuario.tipo}</p>
+                    </div>
+                    <button class="btn-primary" onclick="iniciarNovaConversa('${usuario.id}', '${usuario.tipo}')">Conversar</button>
+                </div>
+            `;
+            usuariosList.appendChild(item);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+    }
+}
+
+// Iniciar nova conversa
+window.iniciarNovaConversa = async function(destinatarioId, destinatarioTipo) {
+    try {
+        const conversaId = await iniciarConversa(destinatarioId, destinatarioTipo);
+        closeModal(modalNovaConversa);
+        
+        // Carregar conversa
+        await loadConversas();
+        abrirConversa(conversaId);
+        
+        // Mudar para aba de mensagens
+        document.querySelector('[data-section="mensagens"]').click();
+        
+    } catch (error) {
+        console.error('Erro ao iniciar conversa:', error);
+        alert('Erro ao iniciar conversa.');
+    }
+};
+
+// Carregar conversas
+async function loadConversas() {
+    try {
+        const conversasList = document.getElementById('conversasList');
+        if (!conversasList) return;
+        
+        const conversas = await carregarConversas();
+        
+        if (conversas.length === 0) {
+            conversasList.innerHTML = '<p class="no-data">Nenhuma conversa</p>';
+            return;
+        }
+        
+        conversasList.innerHTML = '';
+        
+        conversas.forEach(conversa => {
+            const item = document.createElement('div');
+            item.className = 'conversa-item';
+            item.innerHTML = `
+                <h4>${conversa.outroParticipante.nome}</h4>
+                <p>${conversa.ultimaMensagem || 'Sem mensagens'}</p>
+            `;
+            item.onclick = () => abrirConversa(conversa.id);
+            conversasList.appendChild(item);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar conversas:', error);
+    }
+}
+
+// Abrir conversa
+async function abrirConversa(conversaId) {
+    conversaAtual = conversaId;
+    
+    // Desinscrever do listener anterior
+    if (unsubscribeMensagens) {
+        unsubscribeMensagens();
+    }
+    
+    // Mostrar input de mensagem
+    document.getElementById('chatInput').style.display = 'flex';
+    
+    // Escutar mensagens em tempo real
+    unsubscribeMensagens = escutarMensagens(conversaId, (mensagens) => {
+        renderizarMensagens(mensagens);
+    });
+}
+
+// Renderizar mensagens
+function renderizarMensagens(mensagens) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+    
+    if (mensagens.length === 0) {
+        chatMessages.innerHTML = '<p class="no-data">Nenhuma mensagem ainda. Envie a primeira!</p>';
+        return;
+    }
+    
+    chatMessages.innerHTML = '';
+    const currentUserId = auth.currentUser.uid;
+    
+    mensagens.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = `message-item ${msg.remetenteId === currentUserId ? 'sent' : 'received'}`;
+        
+        let dataMsg = '';
+        if (msg.dataEnvio) {
+            const data = msg.dataEnvio.toDate ? msg.dataEnvio.toDate() : new Date(msg.dataEnvio);
+            dataMsg = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        div.innerHTML = `
+            <p>${msg.texto}</p>
+            <span class="message-time">${dataMsg}</span>
+        `;
+        chatMessages.appendChild(div);
+    });
+    
+    // Scroll para última mensagem
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Enviar mensagem
+const btnSendMessage = document.getElementById('btnSendMessage');
+const messageInput = document.getElementById('messageInput');
+
+if (btnSendMessage) {
+    btnSendMessage.addEventListener('click', async () => {
+        await enviarMensagemAtual();
+    });
+}
+
+if (messageInput) {
+    messageInput.addEventListener('keypress', async (e) => {
+        if (e.key === 'Enter') {
+            await enviarMensagemAtual();
+        }
+    });
+}
+
+async function enviarMensagemAtual() {
+    if (!conversaAtual) return;
+    
+    const texto = messageInput.value.trim();
+    if (!texto) return;
+    
+    try {
+        await enviarMensagem(conversaAtual, texto);
+        messageInput.value = '';
+    } catch (error) {
+        console.error('Erro ao enviar mensagem:', error);
+        alert('Erro ao enviar mensagem.');
+    }
+}
+
+// Inicializar Feed e Mensagens quando carregar dados
+const loadDataOriginal = loadData;
+loadData = async function() {
+    await loadDataOriginal();
+    await loadFeed();
+    await loadConversas();
+    
+    // Escutar conversas em tempo real
+    escutarConversas((conversas) => {
+        // Atualizar lista sem recarregar tudo
+        const conversasList = document.getElementById('conversasList');
+        if (conversasList && conversas.length > 0) {
+            // Atualizar apenas se necessário
+        }
+    });
+};
+

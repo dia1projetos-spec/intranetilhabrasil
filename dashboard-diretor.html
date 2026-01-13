@@ -20,6 +20,10 @@
                 <span class="icon">📊</span>
                 Visão Geral
             </a>
+            <a href="#" class="nav-item" data-section="feed">
+                <span class="icon">📱</span>
+                Feed
+            </a>
             <a href="#" class="nav-item" data-section="diretores">
                 <span class="icon">👔</span>
                 Diretores
@@ -35,6 +39,10 @@
             <a href="#" class="nav-item" data-section="turmas">
                 <span class="icon">🏫</span>
                 Turmas
+            </a>
+            <a href="#" class="nav-item" data-section="mensagens">
+                <span class="icon">💬</span>
+                Mensagens
             </a>
         </nav>
         
@@ -102,6 +110,52 @@
                     <h2>Atividades Recentes</h2>
                     <div class="activity-list" id="activityList">
                         <p class="no-data">Nenhuma atividade recente</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Feed Section -->
+            <section id="feed" class="content-section">
+                <div class="section-header">
+                    <h2>Feed da Escola</h2>
+                    <button class="btn-primary" id="btnAddPost">
+                        <span class="icon">➕</span> Nova Publicação
+                    </button>
+                </div>
+
+                <div id="feedContainer" class="feed-container">
+                    <p class="no-data">Carregando feed...</p>
+                </div>
+            </section>
+
+            <!-- Mensagens Section -->
+            <section id="mensagens" class="content-section">
+                <div class="section-header">
+                    <h2>Mensagens</h2>
+                    <button class="btn-primary" id="btnNovaConversa">
+                        <span class="icon">➕</span> Nova Conversa
+                    </button>
+                </div>
+
+                <div class="mensagens-container">
+                    <div class="conversas-list">
+                        <h3>Conversas</h3>
+                        <div id="conversasList">
+                            <p class="no-data">Nenhuma conversa</p>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-area">
+                        <div id="chatHeader" class="chat-header">
+                            <p>Selecione uma conversa</p>
+                        </div>
+                        <div id="chatMessages" class="chat-messages">
+                            <p class="no-data">Selecione uma conversa para começar</p>
+                        </div>
+                        <div id="chatInput" class="chat-input" style="display: none;">
+                            <input type="text" placeholder="Digite sua mensagem..." id="messageInput">
+                            <button class="btn-primary" id="btnSendMessage">Enviar</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -210,6 +264,56 @@
 
         </div>
     </main>
+
+    <!-- Modal Adicionar Diretor -->
+    <div id="modalPost" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nova Publicação</h2>
+                <button class="modal-close" data-modal="modalPost">&times;</button>
+            </div>
+            <form id="formPost" class="modal-form">
+                <div class="form-group">
+                    <label for="postTexto">O que você quer compartilhar?</label>
+                    <textarea id="postTexto" required placeholder="Escreva algo..." rows="4"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="postImagem">Imagem (opcional)</label>
+                    <input type="file" id="postImagem" accept="image/*">
+                    <div id="imagemPreview" style="display: none; margin-top: 10px;">
+                        <img id="imagemPreviewImg" style="max-width: 100%; border-radius: 8px;">
+                    </div>
+                </div>
+                
+                <div id="postError" class="error-message"></div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-modal="modalPost">Cancelar</button>
+                    <button type="submit" class="btn-primary">Publicar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nova Conversa -->
+    <div id="modalNovaConversa" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nova Conversa</h2>
+                <button class="modal-close" data-modal="modalNovaConversa">&times;</button>
+            </div>
+            <div class="modal-form">
+                <div class="form-group">
+                    <label>Selecione com quem deseja conversar:</label>
+                    <input type="text" id="searchUsuario" placeholder="Buscar por nome..." style="margin-bottom: 16px;">
+                    <div id="usuariosList" class="usuarios-list">
+                        <p class="no-data">Carregando usuários...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Adicionar Diretor -->
     <div id="modalDiretor" class="modal">
