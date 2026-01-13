@@ -1,4 +1,4 @@
-// VERSÃO: 2026-01-13 23:45 - ARQUIVO CORRIGIDO
+// VERSÃO: v1.1.0 - 2026-01-14 - Lista de Alunos + Mensagens + Notificações
 import { auth, db, firebaseConfig } from './firebase-config.js';
 import { 
     signOut,
@@ -210,19 +210,25 @@ formDiretor.addEventListener('submit', async (e) => {
         submitBtn.textContent = 'Cadastrar Diretor';
         
     } catch (error) {
-        console.error('Erro ao cadastrar diretor:', error);
-        let errorMsg = 'Erro ao cadastrar diretor.';
-        
-        if (error.code === 'auth/email-already-in-use') {
-            errorMsg = 'Este e-mail já está em uso.';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMsg = 'E-mail inválido.';
-        } else if (error.code === 'auth/weak-password') {
-            errorMsg = 'A senha deve ter pelo menos 6 caracteres.';
+        // Apenas mostrar erro se for realmente um erro (não warnings)
+        if (error.code && error.code.startsWith('auth/')) {
+            let errorMsg = 'Erro ao cadastrar diretor.';
+            
+            if (error.code === 'auth/email-already-in-use') {
+                errorMsg = 'Este e-mail já está em uso.';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMsg = 'E-mail inválido.';
+            } else if (error.code === 'auth/weak-password') {
+                errorMsg = 'A senha deve ter pelo menos 6 caracteres.';
+            }
+            
+            errorDiv.textContent = errorMsg;
+            errorDiv.classList.add('show');
+        } else {
+            // Outro tipo de erro - apenas logar sem mostrar ao usuário
+            console.warn('Aviso durante cadastro:', error.message);
         }
         
-        errorDiv.textContent = errorMsg;
-        errorDiv.classList.add('show');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Cadastrar Diretor';
     }
@@ -284,19 +290,23 @@ formProfessor.addEventListener('submit', async (e) => {
         submitBtn.textContent = 'Cadastrar Professor';
         
     } catch (error) {
-        console.error('Erro ao cadastrar professor:', error);
-        let errorMsg = 'Erro ao cadastrar professor.';
-        
-        if (error.code === 'auth/email-already-in-use') {
-            errorMsg = 'Este e-mail já está em uso.';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMsg = 'E-mail inválido.';
-        } else if (error.code === 'auth/weak-password') {
-            errorMsg = 'A senha deve ter pelo menos 6 caracteres.';
+        if (error.code && error.code.startsWith('auth/')) {
+            let errorMsg = 'Erro ao cadastrar professor.';
+            
+            if (error.code === 'auth/email-already-in-use') {
+                errorMsg = 'Este e-mail já está em uso.';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMsg = 'E-mail inválido.';
+            } else if (error.code === 'auth/weak-password') {
+                errorMsg = 'A senha deve ter pelo menos 6 caracteres.';
+            }
+            
+            errorDiv.textContent = errorMsg;
+            errorDiv.classList.add('show');
+        } else {
+            console.warn('Aviso durante cadastro:', error.message);
         }
         
-        errorDiv.textContent = errorMsg;
-        errorDiv.classList.add('show');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Cadastrar Professor';
     }
@@ -376,19 +386,23 @@ formAluno.addEventListener('submit', async (e) => {
         submitBtn.textContent = 'Cadastrar Aluno';
         
     } catch (error) {
-        console.error('Erro ao cadastrar aluno:', error);
-        let errorMsg = 'Erro ao cadastrar aluno.';
-        
-        if (error.code === 'auth/email-already-in-use') {
-            errorMsg = 'Este e-mail já está em uso.';
-        } else if (error.code === 'auth/invalid-email') {
-            errorMsg = 'E-mail inválido.';
-        } else if (error.code === 'auth/weak-password') {
-            errorMsg = 'A senha deve ter pelo menos 6 caracteres.';
+        if (error.code && error.code.startsWith('auth/')) {
+            let errorMsg = 'Erro ao cadastrar aluno.';
+            
+            if (error.code === 'auth/email-already-in-use') {
+                errorMsg = 'Este e-mail já está em uso.';
+            } else if (error.code === 'auth/invalid-email') {
+                errorMsg = 'E-mail inválido.';
+            } else if (error.code === 'auth/weak-password') {
+                errorMsg = 'A senha deve ter pelo menos 6 caracteres.';
+            }
+            
+            errorDiv.textContent = errorMsg;
+            errorDiv.classList.add('show');
+        } else {
+            console.warn('Aviso durante cadastro:', error.message);
         }
         
-        errorDiv.textContent = errorMsg;
-        errorDiv.classList.add('show');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Cadastrar Aluno';
     }
@@ -442,7 +456,8 @@ async function loadData() {
         loadDiretores(),
         loadProfessores(),
         loadAlunos(),
-        loadTurmas()
+        loadTurmas(),
+        loadListaAlunos()
     ]);
     updateStats();
 }
@@ -608,6 +623,7 @@ async function loadTurmas() {
                     </div>
                 </div>
                 <div class="table-actions">
+                    <button class="btn-primary" onclick="verAlunosTurma('${doc.id}', '${turma.nome}')">Ver Alunos</button>
                     <button class="btn-info" onclick="editarTurma('${doc.id}')">Editar</button>
                     <button class="btn-danger" onclick="deletarTurma('${doc.id}')">Excluir</button>
                 </div>
@@ -826,6 +842,94 @@ window.editarTurma = async function(id) {
     } catch (error) {
         console.error('Erro ao editar:', error);
         alert('Erro ao editar turma.');
+    }
+};
+
+
+// ============================================
+// LISTA DE ALUNOS (ORDEM ALFABÉTICA)
+// ============================================
+
+async function loadListaAlunos() {
+    try {
+        const alunosSnapshot = await getDocs(collection(db, 'alunos'));
+        const listaAlunosTableBody = document.getElementById('listaAlunosTableBody');
+        
+        if (!listaAlunosTableBody) return;
+        
+        listaAlunosTableBody.innerHTML = '';
+        
+        if (alunosSnapshot.empty) {
+            listaAlunosTableBody.innerHTML = '<tr><td colspan="4" class="no-data">Nenhum aluno cadastrado</td></tr>';
+            return;
+        }
+        
+        // Converter para array e ordenar alfabeticamente
+        const alunos = [];
+        alunosSnapshot.forEach((doc) => {
+            alunos.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Ordenar por nome
+        alunos.sort((a, b) => a.nome.localeCompare(b.nome));
+        
+        // Adicionar à tabela
+        alunos.forEach((aluno) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${aluno.nome}</td>
+                <td>${aluno.responsavelNome || 'N/A'}</td>
+                <td>${aluno.turma || 'Sem turma'}</td>
+                <td><span class="badge badge-success">Ativo</span></td>
+            `;
+            listaAlunosTableBody.appendChild(row);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar lista de alunos:', error);
+    }
+}
+
+
+// Ver alunos de uma turma
+window.verAlunosTurma = async function(turmaId, turmaNome) {
+    try {
+        // Buscar alunos da turma
+        const alunosSnapshot = await getDocs(collection(db, 'alunos'));
+        const alunosDaTurma = [];
+        
+        alunosSnapshot.forEach((doc) => {
+            const aluno = doc.data();
+            if (aluno.turma === turmaNome) {
+                alunosDaTurma.push(aluno.nome);
+            }
+        });
+        
+        // Ordenar alfabeticamente
+        alunosDaTurma.sort((a, b) => a.localeCompare(b));
+        
+        // Buscar professor responsável (se houver)
+        // Por enquanto não temos essa funcionalidade, então vamos deixar como "Não atribuído"
+        const professorResponsavel = 'Não atribuído';
+        
+        // Montar mensagem
+        let mensagem = `TURMA: ${turmaNome}\n\n`;
+        mensagem += `Professor Responsável: ${professorResponsavel}\n\n`;
+        mensagem += `ALUNOS (${alunosDaTurma.length}):\n`;
+        
+        if (alunosDaTurma.length === 0) {
+            mensagem += '- Nenhum aluno cadastrado nesta turma';
+        } else {
+            alunosDaTurma.forEach((nome, index) => {
+                mensagem += `${index + 1}. ${nome}\n`;
+            });
+        }
+        
+        alert(mensagem);
+        
+    } catch (error) {
+        console.error('Erro ao buscar alunos da turma:', error);
+        alert('Erro ao carregar alunos da turma');
     }
 };
 
