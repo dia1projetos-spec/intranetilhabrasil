@@ -168,8 +168,9 @@ formDiretor.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Cadastrando...';
     
     try {
-        // Criar uma segunda instância do Firebase para não deslogar o usuário atual
-        const secondaryApp = initializeApp(firebaseConfig, 'Secondary');
+        // Criar uma segunda instância do Firebase com nome único
+        const appName = `Secondary_${Date.now()}`;
+        const secondaryApp = initializeApp(firebaseConfig, appName);
         const secondaryAuth = getAuth(secondaryApp);
         
         // Criar conta no Firebase Auth usando a instância secundária
@@ -241,8 +242,9 @@ formProfessor.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Cadastrando...';
     
     try {
-        // Criar uma segunda instância do Firebase
-        const secondaryApp = initializeApp(firebaseConfig, 'SecondaryProf');
+        // Criar uma segunda instância do Firebase com nome único
+        const appName = `SecondaryProf_${Date.now()}`;
+        const secondaryApp = initializeApp(firebaseConfig, appName);
         const secondaryAuth = getAuth(secondaryApp);
         
         // Criar conta no Firebase Auth
@@ -316,8 +318,9 @@ formAluno.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Cadastrando...';
     
     try {
-        // Criar uma segunda instância do Firebase
-        const secondaryApp = initializeApp(firebaseConfig, 'SecondaryResp');
+        // Criar uma segunda instância do Firebase com nome único baseado em timestamp
+        const appName = `SecondaryResp_${Date.now()}`;
+        const secondaryApp = initializeApp(firebaseConfig, appName);
         const secondaryAuth = getAuth(secondaryApp);
         
         // Criar conta do responsável no Firebase Auth
