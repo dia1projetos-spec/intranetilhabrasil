@@ -1,4 +1,4 @@
-// VERSÃO: v1.3.0 - 2026-01-14 - Calendário Corrigido + Mensagens Removidas
+// VERSÃO: v1.3.2 - 2026-01-14 - DEBUG COMPLETO: Professores nas Notificações
 import { auth, db, firebaseConfig } from './firebase-config.js';
 import { 
     signOut,
@@ -952,42 +952,81 @@ const professorSelectGroup = document.getElementById('professorSelectGroup');
 const btnEnviarNotificacao = document.getElementById('btnEnviarNotificacao');
 const notifMensagem = document.getElementById('notifMensagem');
 
+// Debug: verificar se elementos existem
+console.log('🔍 Verificando elementos de notificação:');
+console.log('notifDestinatarios:', notifDestinatarios ? '✅' : '❌');
+console.log('notifProfessor:', notifProfessor ? '✅' : '❌');
+console.log('professorSelectGroup:', professorSelectGroup ? '✅' : '❌');
+
 // Mostrar/ocultar select de professor
 if (notifDestinatarios) {
     notifDestinatarios.addEventListener('change', async (e) => {
+        console.log('📝 Tipo selecionado:', e.target.value);
         if (e.target.value === 'individual') {
             professorSelectGroup.style.display = 'block';
+            console.log('🔄 Carregando professores...');
             await carregarProfessoresNotif();
         } else {
             professorSelectGroup.style.display = 'none';
         }
     });
+} else {
+    console.error('❌ Select de destinatários não encontrado!');
 }
 
 // Carregar professores no select
 async function carregarProfessoresNotif() {
+    console.log('🔍 Iniciando carregamento de professores...');
+    
+    if (!notifProfessor) {
+        console.error('❌ Select de professor não encontrado!');
+        alert('ERRO: Select de professor não encontrado no HTML!');
+        return;
+    }
+    
     try {
+        notifProfessor.innerHTML = '<option value="">Carregando professores...</option>';
+        
+        console.log('📡 Buscando professores no Firestore...');
         const professoresSnapshot = await getDocs(collection(db, 'professores'));
+        
+        console.log('✅ Total de professores encontrados:', professoresSnapshot.size);
+        
         notifProfessor.innerHTML = '<option value="">Selecione o professor...</option>';
         
-        console.log('Total de professores:', professoresSnapshot.size);
-        
         if (professoresSnapshot.empty) {
+            console.warn('⚠️ Nenhum professor cadastrado!');
             notifProfessor.innerHTML = '<option value="">Nenhum professor cadastrado</option>';
+            alert('Nenhum professor encontrado! Cadastre um professor primeiro.');
             return;
         }
         
+        let count = 0;
         professoresSnapshot.forEach((doc) => {
             const professor = doc.data();
+            console.log(`👨‍🏫 Professor ${count + 1}:`, professor.nome, '(ID:', doc.id, ')');
+            
             const option = document.createElement('option');
             option.value = doc.id;
             option.textContent = professor.nome;
             notifProfessor.appendChild(option);
-            console.log('Professor adicionado:', professor.nome);
+            count++;
         });
+        
+        console.log(`✅ ${count} professores adicionados ao select!`);
+        alert(`✅ ${count} professores carregados com sucesso!`);
+        
     } catch (error) {
-        console.error('Erro ao carregar professores:', error);
-        alert('Erro ao carregar professores: ' + error.message);
+        console.error('❌ ERRO ao carregar professores:', error);
+        console.error('❌ Código do erro:', error.code);
+        console.error('❌ Mensagem:', error.message);
+        
+        notifProfessor.innerHTML = '<option value="">ERRO ao carregar</option>';
+        
+        alert('❌ ERRO ao carregar professores!\n\n' + 
+              'Código: ' + error.code + '\n' +
+              'Mensagem: ' + error.message + '\n\n' +
+              'Verifique as regras do Firestore!');
     }
 }
 
@@ -1150,13 +1189,12 @@ const feriadosBrasil = {
 
 let mesAtual = new Date().getMonth();
 let anoAtual = new Date().getFullYear();
-let diasSelecionado = null;
+let diaSelecionado = null;
 
 const btnMesAnterior = document.getElementById('btnMesAnterior');
 const btnProximoMes = document.getElementById('btnProximoMes');
 const calendarioTitulo = document.getElementById('calendarioTitulo');
 const calendarioDias = document.getElementById('calendarioDias');
-const btnAddEvento = document.getElementById('btnAddEvento');
 const modalEvento = document.getElementById('modalEvento');
 const formEvento = document.getElementById('formEvento');
 
