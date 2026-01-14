@@ -1,4 +1,4 @@
-// VERSÃO: v1.1.1 - 2026-01-14 - Notificações + Lista Alfabética + Correções
+// VERSÃO: v1.2.0 - 2026-01-14 - Calendário com Feriados + Notificações Corrigidas
 import { auth, db, firebaseConfig } from './firebase-config.js';
 import { 
     signOut,
@@ -970,15 +970,24 @@ async function carregarProfessoresNotif() {
         const professoresSnapshot = await getDocs(collection(db, 'professores'));
         notifProfessor.innerHTML = '<option value="">Selecione o professor...</option>';
         
+        console.log('Total de professores:', professoresSnapshot.size);
+        
+        if (professoresSnapshot.empty) {
+            notifProfessor.innerHTML = '<option value="">Nenhum professor cadastrado</option>';
+            return;
+        }
+        
         professoresSnapshot.forEach((doc) => {
             const professor = doc.data();
             const option = document.createElement('option');
             option.value = doc.id;
             option.textContent = professor.nome;
             notifProfessor.appendChild(option);
+            console.log('Professor adicionado:', professor.nome);
         });
     } catch (error) {
         console.error('Erro ao carregar professores:', error);
+        alert('Erro ao carregar professores: ' + error.message);
     }
 }
 
@@ -1089,5 +1098,307 @@ async function carregarNotificacoesEnviadas() {
     } catch (error) {
         console.error('Erro ao carregar notificações:', error);
     }
+}
+
+
+// ============================================
+// SISTEMA DE CALENDÁRIO
+// ============================================
+
+// Feriados Nacionais do Brasil (fixos e móveis calculados)
+const feriadosBrasil = {
+    "2025": [
+        { data: "2025-01-01", nome: "Ano Novo" },
+        { data: "2025-03-04", nome: "Carnaval" },
+        { data: "2025-04-18", nome: "Sexta-feira Santa" },
+        { data: "2025-04-21", nome: "Tiradentes" },
+        { data: "2025-05-01", nome: "Dia do Trabalho" },
+        { data: "2025-06-19", nome: "Corpus Christi" },
+        { data: "2025-09-07", nome: "Independência" },
+        { data: "2025-10-12", nome: "Nossa Senhora Aparecida" },
+        { data: "2025-11-02", nome: "Finados" },
+        { data: "2025-11-15", nome: "Proclamação da República" },
+        { data: "2025-12-25", nome: "Natal" }
+    ],
+    "2026": [
+        { data: "2026-01-01", nome: "Ano Novo" },
+        { data: "2026-02-17", nome: "Carnaval" },
+        { data: "2026-04-03", nome: "Sexta-feira Santa" },
+        { data: "2026-04-21", nome: "Tiradentes" },
+        { data: "2026-05-01", nome: "Dia do Trabalho" },
+        { data: "2026-06-04", nome: "Corpus Christi" },
+        { data: "2026-09-07", nome: "Independência" },
+        { data: "2026-10-12", nome: "Nossa Senhora Aparecida" },
+        { data: "2026-11-02", nome: "Finados" },
+        { data: "2026-11-15", nome: "Proclamação da República" },
+        { data: "2026-12-25", nome: "Natal" }
+    ],
+    "2027": [
+        { data: "2027-01-01", nome: "Ano Novo" },
+        { data: "2027-02-09", nome: "Carnaval" },
+        { data: "2027-03-26", nome: "Sexta-feira Santa" },
+        { data: "2027-04-21", nome: "Tiradentes" },
+        { data: "2027-05-01", nome: "Dia do Trabalho" },
+        { data: "2027-05-27", nome: "Corpus Christi" },
+        { data: "2027-09-07", nome: "Independência" },
+        { data: "2027-10-12", nome: "Nossa Senhora Aparecida" },
+        { data: "2027-11-02", nome: "Finados" },
+        { data: "2027-11-15", nome: "Proclamação da República" },
+        { data: "2027-12-25", nome: "Natal" }
+    ]
+};
+
+let mesAtual = new Date().getMonth();
+let anoAtual = new Date().getFullYear();
+let diasSelecionado = null;
+
+const btnMesAnterior = document.getElementById('btnMesAnterior');
+const btnProximoMes = document.getElementById('btnProximoMes');
+const calendarioTitulo = document.getElementById('calendarioTitulo');
+const calendarioDias = document.getElementById('calendarioDias');
+const btnAddEvento = document.getElementById('btnAddEvento');
+const modalEvento = document.getElementById('modalEvento');
+const formEvento = document.getElementById('formEvento');
+
+// Navegação
+if (btnMesAnterior) btnMesAnterior.addEventListener('click', () => {
+    mesAtual--;
+    if (mesAtual < 0) {
+        mesAtual = 11;
+        anoAtual--;
+    }
+    renderizarCalendario();
+});
+
+if (btnProximoMes) btnProximoMes.addEventListener('click', () => {
+    mesAtual++;
+    if (mesAtual > 11) {
+        mesAtual = 0;
+        anoAtual++;
+    }
+    renderizarCalendario();
+});
+
+// Renderizar calendário
+function renderizarCalendario() {
+    if (!calendarioDias || !calendarioTitulo) return;
+    
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    calendarioTitulo.textContent = `${meses[mesAtual]} ${anoAtual}`;
+    
+    const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
+    const diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+    const diasMesAnterior = new Date(anoAtual, mesAtual, 0).getDate();
+    
+    calendarioDias.innerHTML = '';
+    
+    // Dias do mês anterior
+    for (let i = primeiroDia - 1; i >= 0; i--) {
+        const dia = document.createElement('div');
+        dia.className = 'dia outro-mes';
+        dia.innerHTML = `<span class="dia-numero">${diasMesAnterior - i}</span>`;
+        calendarioDias.appendChild(dia);
+    }
+    
+    // Dias do mês atual
+    const hoje = new Date();
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const diaElement = document.createElement('div');
+        diaElement.className = 'dia';
+        
+        const dataCompleta = `${anoAtual}-${String(mesAtual + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        
+        // Verificar se é hoje
+        if (dia === hoje.getDate() && mesAtual === hoje.getMonth() && anoAtual === hoje.getFullYear()) {
+            diaElement.classList.add('hoje');
+        }
+        
+        // Verificar se é feriado
+        const feriado = verificarFeriado(dataCompleta);
+        if (feriado) {
+            diaElement.classList.add('feriado');
+            diaElement.title = feriado.nome;
+        }
+        
+        diaElement.innerHTML = `<span class="dia-numero">${dia}</span>`;
+        diaElement.onclick = () => mostrarEventosDia(dataCompleta);
+        
+        // Verificar se tem compromisso (fazer depois)
+        verificarCompromisso(dataCompleta).then(temEvento => {
+            if (temEvento) {
+                diaElement.classList.add('tem-evento');
+                diaElement.innerHTML += '<span class="dia-indicador">📌</span>';
+            }
+        });
+        
+        calendarioDias.appendChild(diaElement);
+    }
+    
+    // Completar com dias do próximo mês
+    const totalDias = calendarioDias.children.length;
+    const diasFaltantes = 42 - totalDias; // 6 semanas
+    for (let dia = 1; dia <= diasFaltantes; dia++) {
+        const diaElement = document.createElement('div');
+        diaElement.className = 'dia outro-mes';
+        diaElement.innerHTML = `<span class="dia-numero">${dia}</span>`;
+        calendarioDias.appendChild(diaElement);
+    }
+}
+
+// Verificar se data é feriado
+function verificarFeriado(data) {
+    const ano = data.split('-')[0];
+    if (!feriadosBrasil[ano]) return null;
+    return feriadosBrasil[ano].find(f => f.data === data);
+}
+
+// Verificar se tem compromisso
+async function verificarCompromisso(data) {
+    try {
+        const q = query(
+            collection(db, 'eventos'),
+            where('data', '==', data)
+        );
+        const snapshot = await getDocs(q);
+        return !snapshot.empty;
+    } catch (error) {
+        return false;
+    }
+}
+
+// Mostrar eventos do dia
+async function mostrarEventosDia(data) {
+    diaSelecionado = data;
+    const eventosDiaTitulo = document.getElementById('eventosDiaTitulo');
+    const eventosLista = document.getElementById('eventosLista');
+    
+    if (!eventosDiaTitulo || !eventosLista) return;
+    
+    const dataObj = new Date(data + 'T00:00:00');
+    eventosDiaTitulo.textContent = dataObj.toLocaleDateString('pt-BR', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    eventosLista.innerHTML = '<p class="no-data">Carregando...</p>';
+    
+    const eventos = [];
+    
+    // Adicionar feriado se houver
+    const feriado = verificarFeriado(data);
+    if (feriado) {
+        eventos.push({
+            tipo: 'feriado',
+            titulo: feriado.nome,
+            descricao: 'Feriado Nacional'
+        });
+    }
+    
+    // Buscar compromissos
+    try {
+        const q = query(
+            collection(db, 'eventos'),
+            where('data', '==', data)
+        );
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+            eventos.push({
+                id: doc.id,
+                tipo: 'compromisso',
+                ...doc.data()
+            });
+        });
+    } catch (error) {
+        console.error('Erro ao carregar eventos:', error);
+    }
+    
+    if (eventos.length === 0) {
+        eventosLista.innerHTML = '<p class="no-data">Nenhum evento neste dia</p>';
+        return;
+    }
+    
+    eventosLista.innerHTML = '';
+    eventos.forEach(evento => {
+        const div = document.createElement('div');
+        div.className = 'evento-item';
+        div.innerHTML = `
+            <span class="evento-tipo ${evento.tipo}">${evento.tipo === 'feriado' ? '🎉 Feriado' : '📌 Compromisso'}</span>
+            <div class="evento-titulo">${evento.titulo}</div>
+            ${evento.hora ? `<div class="evento-hora">⏰ ${evento.hora}</div>` : ''}
+            ${evento.descricao ? `<div class="evento-descricao">${evento.descricao}</div>` : ''}
+            ${evento.tipo === 'compromisso' ? `
+                <div class="evento-actions">
+                    <button class="btn-danger" onclick="excluirEvento('${evento.id}')">Excluir</button>
+                </div>
+            ` : ''}
+        `;
+        eventosLista.appendChild(div);
+    });
+}
+
+// Abrir modal de novo evento
+if (btnAddEvento) {
+    btnAddEvento.addEventListener('click', () => {
+        document.getElementById('eventoData').value = diaSelecionado || new Date().toISOString().split('T')[0];
+        openModal(modalEvento);
+    });
+}
+
+// Criar evento
+if (formEvento) {
+    formEvento.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const titulo = document.getElementById('eventoTitulo').value.trim();
+        const data = document.getElementById('eventoData').value;
+        const hora = document.getElementById('eventoHora').value;
+        const descricao = document.getElementById('eventoDescricao').value.trim();
+        
+        try {
+            await addDoc(collection(db, 'eventos'), {
+                titulo,
+                data,
+                hora: hora || null,
+                descricao: descricao || '',
+                criadoPor: auth.currentUser.uid,
+                dataCriacao: serverTimestamp()
+            });
+            
+            alert('✅ Compromisso criado com sucesso!');
+            formEvento.reset();
+            closeModal(modalEvento);
+            renderizarCalendario();
+            if (diaSelecionado) mostrarEventosDia(diaSelecionado);
+            
+        } catch (error) {
+            console.error('Erro ao criar evento:', error);
+            alert('Erro ao criar compromisso');
+        }
+    });
+}
+
+// Excluir evento
+window.excluirEvento = async function(eventoId) {
+    if (!confirm('Deseja excluir este compromisso?')) return;
+    
+    try {
+        await deleteDoc(doc(db, 'eventos', eventoId));
+        alert('Compromisso excluído!');
+        renderizarCalendario();
+        if (diaSelecionado) mostrarEventosDia(diaSelecionado);
+    } catch (error) {
+        console.error('Erro ao excluir evento:', error);
+        alert('Erro ao excluir compromisso');
+    }
+};
+
+// Inicializar calendário quando carregar a seção
+const calendarioSection = document.getElementById('calendario');
+if (calendarioSection) {
+    renderizarCalendario();
 }
 

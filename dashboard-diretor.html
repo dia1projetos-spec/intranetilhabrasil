@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Diretor - Colégio Ilha Brasil</title>
-    <link rel="stylesheet" href="css/style.css?v=20260114-1130">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260114-1130">
+    <link rel="stylesheet" href="css/style.css?v=20260114-1230">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260114-1230">
 </head>
 <body>
     <!-- Sidebar -->
@@ -35,6 +35,10 @@
             <a href="#" class="nav-item" data-section="turmas">
                 <span class="icon">🏫</span>
                 Turmas
+            </a>
+            <a href="#" class="nav-item" data-section="calendario">
+                <span class="icon">📅</span>
+                Calendário
             </a>
             <a href="#" class="nav-item" data-section="mensagens">
                 <span class="icon">💬</span>
@@ -259,6 +263,57 @@
 
                 <div class="turmas-grid" id="turmasGrid">
                     <p class="no-data">Nenhuma turma cadastrada</p>
+                </div>
+            </section>
+
+            <!-- Calendário Section -->
+            <section id="calendario" class="content-section">
+                <div class="section-header">
+                    <h2>📅 Calendário Escolar</h2>
+                    <button class="btn-primary" id="btnAddEvento">
+                        <span class="icon">➕</span> Novo Compromisso
+                    </button>
+                </div>
+
+                <div class="calendario-container">
+                    <!-- Controles do Calendário -->
+                    <div class="calendario-header">
+                        <button class="btn-nav" id="btnMesAnterior">◀</button>
+                        <h3 id="calendarioTitulo">Janeiro 2026</h3>
+                        <button class="btn-nav" id="btnProximoMes">▶</button>
+                    </div>
+
+                    <!-- Grid do Calendário -->
+                    <div class="calendario-grid">
+                        <div class="dia-semana">Dom</div>
+                        <div class="dia-semana">Seg</div>
+                        <div class="dia-semana">Ter</div>
+                        <div class="dia-semana">Qua</div>
+                        <div class="dia-semana">Qui</div>
+                        <div class="dia-semana">Sex</div>
+                        <div class="dia-semana">Sáb</div>
+                        
+                        <div id="calendarioDias" class="dias-grid"></div>
+                    </div>
+
+                    <!-- Legenda -->
+                    <div class="calendario-legenda">
+                        <div class="legenda-item">
+                            <span class="cor-feriado"></span> Feriado Nacional
+                        </div>
+                        <div class="legenda-item">
+                            <span class="cor-compromisso"></span> Compromisso
+                        </div>
+                        <div class="legenda-item">
+                            <span class="cor-hoje"></span> Hoje
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Eventos do Dia -->
+                <div class="eventos-dia">
+                    <h3 id="eventosDiaTitulo">Selecione um dia</h3>
+                    <div id="eventosLista"></div>
                 </div>
             </section>
 
@@ -550,8 +605,46 @@
         </div>
     </div>
 
+    <!-- Modal Adicionar Evento -->
+    <div id="modalEvento" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Compromisso</h2>
+                <button class="modal-close" data-modal="modalEvento">&times;</button>
+            </div>
+            <form id="formEvento" class="modal-form">
+                <div class="form-group">
+                    <label for="eventoTitulo">Título *</label>
+                    <input type="text" id="eventoTitulo" required placeholder="Ex: Reunião de Pais">
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventoData">Data *</label>
+                    <input type="date" id="eventoData" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventoHora">Hora (opcional)</label>
+                    <input type="time" id="eventoHora">
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventoDescricao">Descrição</label>
+                    <textarea id="eventoDescricao" rows="3" placeholder="Detalhes do compromisso..."></textarea>
+                </div>
+                
+                <div id="eventoError" class="error-message"></div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-modal="modalEvento">Cancelar</button>
+                    <button type="submit" class="btn-primary">Criar Compromisso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
-    <script type="module" src="js/firebase-config.js?v=20260114-1130"></script>
-    <script type="module" src="js/dashboard-diretor.js?v=20260114-1130"></script>
+    <script type="module" src="js/firebase-config.js?v=20260114-1230"></script>
+    <script type="module" src="js/dashboard-diretor.js?v=20260114-1230"></script>
 </body>
 </html>
