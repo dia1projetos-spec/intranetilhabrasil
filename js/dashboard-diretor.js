@@ -1,4 +1,4 @@
-// VERSÃO: v1.2.1 - 2026-01-14 - Calendário Melhorado + Click no Dia
+// VERSÃO: v1.3.0 - 2026-01-14 - Calendário Corrigido + Mensagens Removidas
 import { auth, db, firebaseConfig } from './firebase-config.js';
 import { 
     signOut,
@@ -1224,12 +1224,21 @@ function renderizarCalendario() {
         
         diaElement.innerHTML = `<span class="dia-numero">${dia}</span>`;
         
-        // Click abre modal para criar compromisso
-        diaElement.onclick = () => {
+        // Click abre modal para criar compromisso (apenas dias do mês atual)
+        diaElement.addEventListener('click', function(e) {
+            e.stopPropagation();
             diaSelecionado = dataCompleta;
-            document.getElementById('eventoData').value = dataCompleta;
-            openModal(modalEvento);
-        };
+            const eventoDataInput = document.getElementById('eventoData');
+            if (eventoDataInput) {
+                eventoDataInput.value = dataCompleta;
+            }
+            const modal = document.getElementById('modalEvento');
+            if (modal) {
+                openModal(modal);
+            } else {
+                console.error('Modal de evento não encontrado!');
+            }
+        });
         
         // Carregar e mostrar compromissos do dia
         carregarCompromissosDia(dataCompleta, diaElement);

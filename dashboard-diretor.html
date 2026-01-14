@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Diretor - Colégio Ilha Brasil</title>
-    <link rel="stylesheet" href="css/style.css?v=20260114-1330">
-    <link rel="stylesheet" href="css/dashboard.css?v=20260114-1330">
-    <link rel="stylesheet" href="css/calendario.css?v=20260114-1330">
+    <link rel="stylesheet" href="css/style.css?v=20260114-1400">
+    <link rel="stylesheet" href="css/dashboard.css?v=20260114-1400">
+    <link rel="stylesheet" href="css/calendario.css?v=20260114-1400">
 </head>
 <body>
     <!-- Sidebar -->
@@ -40,10 +40,6 @@
             <a href="#" class="nav-item" data-section="calendario">
                 <span class="icon">📅</span>
                 Calendário
-            </a>
-            <a href="#" class="nav-item" data-section="mensagens">
-                <span class="icon">💬</span>
-                Mensagens
             </a>
             <a href="#" class="nav-item" data-section="notificacoes">
                 <span class="icon">🔔</span>
@@ -310,38 +306,6 @@
 
             </section>
 
-            <!-- Mensagens Section -->
-            <section id="mensagens" class="content-section">
-                <div class="section-header">
-                    <h2>Mensagens com Professores</h2>
-                    <button class="btn-primary" id="btnNovaConversa">
-                        <span class="icon">➕</span> Nova Conversa
-                    </button>
-                </div>
-
-                <div class="mensagens-container">
-                    <div class="conversas-list">
-                        <h3>Conversas</h3>
-                        <div id="conversasList">
-                            <p class="no-data">Nenhuma conversa</p>
-                        </div>
-                    </div>
-                    
-                    <div class="chat-area">
-                        <div id="chatHeader" class="chat-header">
-                            <p>Selecione uma conversa</p>
-                        </div>
-                        <div id="chatMessages" class="chat-messages">
-                            <p class="no-data">Selecione uma conversa para começar</p>
-                        </div>
-                        <div id="chatInput" class="chat-input" style="display: none;">
-                            <input type="text" placeholder="Digite sua mensagem..." id="messageInput">
-                            <button class="btn-primary" id="btnSendMessage">Enviar</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <!-- Notificações Section -->
             <section id="notificacoes" class="content-section">
                 <div class="section-header">
@@ -412,25 +376,6 @@
                     <button type="submit" class="btn-primary">Publicar</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Modal Nova Conversa -->
-    <div id="modalNovaConversa" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Nova Conversa</h2>
-                <button class="modal-close" data-modal="modalNovaConversa">&times;</button>
-            </div>
-            <div class="modal-form">
-                <div class="form-group">
-                    <label>Selecione com quem deseja conversar:</label>
-                    <input type="text" id="searchUsuario" placeholder="Buscar por nome..." style="margin-bottom: 16px;">
-                    <div id="usuariosList" class="usuarios-list">
-                        <p class="no-data">Carregando usuários...</p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -637,7 +582,7 @@
     </div>
 
     <!-- Firebase SDK -->
-    <script type="module" src="js/firebase-config.js?v=20260114-1330"></script>
-    <script type="module" src="js/dashboard-diretor.js?v=20260114-1330"></script>
+    <script type="module" src="js/firebase-config.js?v=20260114-1400"></script>
+    <script type="module" src="js/dashboard-diretor.js?v=20260114-1400"></script>
 </body>
 </html>
