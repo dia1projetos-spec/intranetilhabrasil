@@ -1,4 +1,4 @@
-// VERSÃO: v1.2.0 - 2026-01-14 - Calendário com Feriados + Notificações Corrigidas
+// VERSÃO: v1.2.1 - 2026-01-14 - Calendário Melhorado + Click no Dia
 import { auth, db, firebaseConfig } from './firebase-config.js';
 import { 
     signOut,
@@ -1223,15 +1223,16 @@ function renderizarCalendario() {
         }
         
         diaElement.innerHTML = `<span class="dia-numero">${dia}</span>`;
-        diaElement.onclick = () => mostrarEventosDia(dataCompleta);
         
-        // Verificar se tem compromisso (fazer depois)
-        verificarCompromisso(dataCompleta).then(temEvento => {
-            if (temEvento) {
-                diaElement.classList.add('tem-evento');
-                diaElement.innerHTML += '<span class="dia-indicador">📌</span>';
-            }
-        });
+        // Click abre modal para criar compromisso
+        diaElement.onclick = () => {
+            diaSelecionado = dataCompleta;
+            document.getElementById('eventoData').value = dataCompleta;
+            openModal(modalEvento);
+        };
+        
+        // Carregar e mostrar compromissos do dia
+        carregarCompromissosDia(dataCompleta, diaElement);
         
         calendarioDias.appendChild(diaElement);
     }
@@ -1254,17 +1255,66 @@ function verificarFeriado(data) {
     return feriadosBrasil[ano].find(f => f.data === data);
 }
 
-// Verificar se tem compromisso
-async function verificarCompromisso(data) {
+// Carregar compromissos e mostrar dentro do dia
+async function carregarCompromissosDia(data, diaElement) {
     try {
         const q = query(
             collection(db, 'eventos'),
             where('data', '==', data)
         );
         const snapshot = await getDocs(q);
-        return !snapshot.empty;
+        
+        if (!snapshot.empty) {
+            const compromissosDiv = document.createElement('div');
+            compromissosDiv.className = 'dia-compromissos';
+            
+            let count = 0;
+            snapshot.forEach((doc) => {
+                if (count < 2) { // Mostrar no máximo 2 compromissos
+                    const evento = doc.data();
+                    const eventoDiv = document.createElement('div');
+                    eventoDiv.className = 'mini-evento';
+                    eventoDiv.innerHTML = `
+                        <span class="mini-evento-icon">📌</span>
+                        <span class="mini-evento-titulo">${evento.titulo}</span>
+                    `;
+                    eventoDiv.onclick = (e) => {
+                        e.stopPropagation();
+                        mostrarDetalhesEvento(doc.id, evento);
+                    };
+                    compromissosDiv.appendChild(eventoDiv);
+                }
+                count++;
+            });
+            
+            if (count > 2) {
+                const maisDiv = document.createElement('div');
+                maisDiv.className = 'mini-evento-mais';
+                maisDiv.textContent = `+${count - 2} mais`;
+                compromissosDiv.appendChild(maisDiv);
+            }
+            
+            diaElement.appendChild(compromissosDiv);
+        }
     } catch (error) {
-        return false;
+        console.error('Erro ao carregar compromissos:', error);
+    }
+}
+
+// Mostrar detalhes do evento
+function mostrarDetalhesEvento(eventoId, evento) {
+    const detalhes = `
+COMPROMISSO:
+${evento.titulo}
+
+${evento.hora ? 'Horário: ' + evento.hora : ''}
+${evento.descricao ? '\n' + evento.descricao : ''}
+
+Deseja excluir este compromisso?
+    `;
+    
+    if (confirm(detalhes)) {
+        excluirEvento(eventoId);
     }
 }
 
@@ -1337,14 +1387,6 @@ async function mostrarEventosDia(data) {
             ` : ''}
         `;
         eventosLista.appendChild(div);
-    });
-}
-
-// Abrir modal de novo evento
-if (btnAddEvento) {
-    btnAddEvento.addEventListener('click', () => {
-        document.getElementById('eventoData').value = diaSelecionado || new Date().toISOString().split('T')[0];
-        openModal(modalEvento);
     });
 }
 
