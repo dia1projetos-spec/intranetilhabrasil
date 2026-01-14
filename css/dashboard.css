@@ -909,3 +909,55 @@ input[type="file"]:hover {
     background: var(--light-green);
 }
 
+
+/* Notificações */
+.notificacao-form {
+    background: var(--bg-white);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+}
+
+.notificacoes-enviadas {
+    background: var(--bg-white);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.notificacoes-enviadas h3 {
+    color: var(--primary-green);
+    margin-bottom: 16px;
+}
+
+.notificacao-item {
+    padding: 16px;
+    border-left: 4px solid var(--primary-green);
+    background: var(--bg-light);
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.notif-header strong {
+    color: var(--text-dark);
+    font-size: 14px;
+}
+
+.notif-data {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.notif-mensagem {
+    color: var(--text-dark);
+    line-height: 1.5;
+}
+

@@ -1,4 +1,4 @@
-// VERSÃO: v1.1.0 - 2026-01-14 - Lista de Alunos + Mensagens + Notificações
+// VERSÃO: v1.1.1 - 2026-01-14 - Notificações + Lista Alfabética + Correções
 import { auth, db, firebaseConfig } from './firebase-config.js';
 import { 
     signOut,
@@ -14,6 +14,7 @@ import {
     deleteDoc,
     updateDoc,
     query,
+    where,
     orderBy,
     serverTimestamp,
     getDoc,
@@ -457,7 +458,7 @@ async function loadData() {
         loadProfessores(),
         loadAlunos(),
         loadTurmas(),
-        loadListaAlunos()
+        carregarNotificacoesEnviadas()
     ]);
     updateStats();
 }
@@ -541,8 +542,7 @@ async function loadProfessores() {
 // Carregar Alunos
 async function loadAlunos() {
     try {
-        const q = query(collection(db, 'alunos'), orderBy('dataCadastro', 'desc'));
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(collection(db, 'alunos'));
         
         alunosTableBody.innerHTML = '';
         
@@ -551,10 +551,18 @@ async function loadAlunos() {
             return;
         }
         
+        // Converter para array e ordenar alfabeticamente
+        const alunos = [];
         querySnapshot.forEach((doc) => {
-            const aluno = doc.data();
+            alunos.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Ordenar por nome (ordem alfabética)
+        alunos.sort((a, b) => a.nome.localeCompare(b.nome));
+        
+        // Adicionar à tabela
+        alunos.forEach((aluno) => {
             const row = document.createElement('tr');
-            
             const dataCadastro = aluno.dataCadastro?.toDate().toLocaleDateString('pt-BR') || 'N/A';
             
             row.innerHTML = `
@@ -564,8 +572,8 @@ async function loadAlunos() {
                 <td>${dataCadastro}</td>
                 <td><span class="badge badge-success">Ativo</span></td>
                 <td class="table-actions">
-                    <button class="btn-info" onclick="editarAluno('${doc.id}')">Editar</button>
-                    <button class="btn-danger" onclick="deletarAluno('${doc.id}')">Excluir</button>
+                    <button class="btn-info" onclick="editarAluno('${aluno.id}')">Editar</button>
+                    <button class="btn-danger" onclick="deletarAluno('${aluno.id}')">Excluir</button>
                 </td>
             `;
             
@@ -932,4 +940,154 @@ window.verAlunosTurma = async function(turmaId, turmaNome) {
         alert('Erro ao carregar alunos da turma');
     }
 };
+
+
+// ============================================
+// SISTEMA DE NOTIFICAÇÕES
+// ============================================
+
+const notifDestinatarios = document.getElementById('notifDestinatarios');
+const notifProfessor = document.getElementById('notifProfessor');
+const professorSelectGroup = document.getElementById('professorSelectGroup');
+const btnEnviarNotificacao = document.getElementById('btnEnviarNotificacao');
+const notifMensagem = document.getElementById('notifMensagem');
+
+// Mostrar/ocultar select de professor
+if (notifDestinatarios) {
+    notifDestinatarios.addEventListener('change', async (e) => {
+        if (e.target.value === 'individual') {
+            professorSelectGroup.style.display = 'block';
+            await carregarProfessoresNotif();
+        } else {
+            professorSelectGroup.style.display = 'none';
+        }
+    });
+}
+
+// Carregar professores no select
+async function carregarProfessoresNotif() {
+    try {
+        const professoresSnapshot = await getDocs(collection(db, 'professores'));
+        notifProfessor.innerHTML = '<option value="">Selecione o professor...</option>';
+        
+        professoresSnapshot.forEach((doc) => {
+            const professor = doc.data();
+            const option = document.createElement('option');
+            option.value = doc.id;
+            option.textContent = professor.nome;
+            notifProfessor.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar professores:', error);
+    }
+}
+
+// Enviar notificação
+if (btnEnviarNotificacao) {
+    btnEnviarNotificacao.addEventListener('click', async () => {
+        const tipo = notifDestinatarios.value;
+        const mensagem = notifMensagem.value.trim();
+        
+        if (!tipo) {
+            alert('Selecione os destinatários');
+            return;
+        }
+        
+        if (!mensagem) {
+            alert('Digite a mensagem da notificação');
+            return;
+        }
+        
+        if (tipo === 'individual' && !notifProfessor.value) {
+            alert('Selecione um professor');
+            return;
+        }
+        
+        try {
+            btnEnviarNotificacao.disabled = true;
+            btnEnviarNotificacao.textContent = 'Enviando...';
+            
+            const notificacao = {
+                tipo: tipo,
+                mensagem: mensagem,
+                remetenteId: auth.currentUser.uid,
+                dataEnvio: serverTimestamp(),
+                lida: false
+            };
+            
+            if (tipo === 'individual') {
+                notificacao.destinatarioId = notifProfessor.value;
+                // Pegar nome do professor
+                const profDoc = await getDoc(doc(db, 'professores', notifProfessor.value));
+                notificacao.destinatarioNome = profDoc.data().nome;
+            } else {
+                notificacao.destinatarioNome = 'Todos os Professores';
+            }
+            
+            // Salvar no Firestore
+            await addDoc(collection(db, 'notificacoes'), notificacao);
+            
+            alert('✅ Notificação enviada com sucesso!');
+            
+            // Limpar campos
+            notifDestinatarios.value = '';
+            notifMensagem.value = '';
+            professorSelectGroup.style.display = 'none';
+            
+            // Recarregar lista de notificações
+            await carregarNotificacoesEnviadas();
+            
+        } catch (error) {
+            console.error('Erro ao enviar notificação:', error);
+            alert('Erro ao enviar notificação');
+        } finally {
+            btnEnviarNotificacao.disabled = false;
+            btnEnviarNotificacao.textContent = '📤 Enviar Notificação';
+        }
+    });
+}
+
+// Carregar notificações enviadas
+async function carregarNotificacoesEnviadas() {
+    try {
+        const q = query(
+            collection(db, 'notificacoes'),
+            where('remetenteId', '==', auth.currentUser.uid),
+            orderBy('dataEnvio', 'desc')
+        );
+        
+        const notificacoesSnapshot = await getDocs(q);
+        const notificacoesLista = document.getElementById('notificacoesLista');
+        
+        if (!notificacoesLista) return;
+        
+        notificacoesLista.innerHTML = '';
+        
+        if (notificacoesSnapshot.empty) {
+            notificacoesLista.innerHTML = '<p class="no-data">Nenhuma notificação enviada</p>';
+            return;
+        }
+        
+        notificacoesSnapshot.forEach((doc) => {
+            const notif = doc.data();
+            const div = document.createElement('div');
+            div.className = 'notificacao-item';
+            
+            const data = notif.dataEnvio?.toDate().toLocaleString('pt-BR') || 'Agora';
+            
+            div.innerHTML = `
+                <div class="notif-header">
+                    <strong>Para: ${notif.destinatarioNome}</strong>
+                    <span class="notif-data">${data}</span>
+                </div>
+                <div class="notif-mensagem">${notif.mensagem}</div>
+            `;
+            
+            notificacoesLista.appendChild(div);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar notificações:', error);
+    }
+}
 
